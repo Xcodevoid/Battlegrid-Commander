@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BattleGrid Command</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700&family=Rajdhani:wght@400;600&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+</head>
+<body>
+    <!-- Main Menu -->
+    <div id="mainMenu" class="main-menu">
+        <div class="menu-content">
+            <h1>⚔️ BattleGrid Command ⚔️</h1>
+            <div class="menu-buttons">
+                <button id="sandboxBtn" class="menu-btn sandbox-btn">🏖️ Sandbox Mode</button>
+                <button id="normalBtn" class="menu-btn campaign-btn">⚔️ Campaign Mode</button>
+                <button id="instructionsBtn" class="menu-btn howto-btn">📖 How to Play</button>
+            </div>
+            <div class="version">v2.0 - New Maps & Economy</div>
+        </div>
+    </div>
+    
+    <!-- Campaign Level Select -->
+    <div id="levelSelect" class="level-select hidden">
+        <div class="level-select-content">
+            <h2>🎯 Select Level</h2>
+            <div class="level-slider-container">
+                <input type="range" id="levelSlider" min="1" max="300" value="1" class="level-slider">
+                <div class="level-display">Level: <span id="levelValue">1</span></div>
+            </div>
+            <div class="level-buttons">
+                <button id="backToMenuBtn" class="level-btn back">⬅️ Back</button>
+                <button id="startCampaignBtn" class="level-btn start">Start Campaign ▶</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Instructions Modal -->
+    <div id="instructionsModal" class="instructions-modal hidden">
+        <div class="instructions-content">
+            <button class="close-instructions" id="closeInstructions">✕</button>
+            <h2>📖 BattleGrid Command Instructions</h2>
+            
+            <div class="instruction-section">
+                <h3>💰 Economy System</h3>
+                <ul>
+                    <li>Each unit has a price based on its stats</li>
+                    <li><strong>Sandbox Mode</strong> - Both teams start with equal money</li>
+                    <li><strong>Campaign Mode</strong> - Earn money by winning battles</li>
+                    <li>Higher levels in Campaign = more money but stronger enemies!</li>
+                </ul>
+            </div>
+            
+            <div class="instruction-section">
+                <h3>🎮 Controls</h3>
+                <ul>
+                    <li><strong>Select a Unit</strong> - Click on a unit type from the left panel</li>
+                    <li><strong>Select Team</strong> - Choose Red Team or Blue Team</li>
+                    <li><strong>Place Units</strong> - Click on the battlefield to place your units</li>
+                    <li><strong>Start Battle</strong> - Press "Start Battle" to begin the fight!</li>
+                </ul>
+            </div>
+            
+            <div class="instruction-section">
+                <h3>🟡 Territory System</h3>
+                <ul>
+                    <li><strong>Yellow Line</strong> - Divides the battlefield in half</li>
+                    <li><strong>Red Team</strong> - Can ONLY place units on the LEFT side</li>
+                    <li><strong>Blue Team</strong> - Can ONLY place units on the RIGHT side</li>
+                    <li>If you click on the wrong side, you'll get an error message!</li>
+                </ul>
+            </div>
+            
+            <div class="instruction-section">
+                <h3>🏆 Game Modes</h3>
+                <ul>
+                    <li><strong>Sandbox Mode</strong> - Free play with custom settings
+                        <ul>
+                            <li>Choose your map</li>
+                            <li>Set max units per team (1-100)</li>
+                            <li>Set starting money (100-5000)</li>
+                        </ul>
+                    </li>
+                    <li><strong>Campaign Mode</strong> - Progressive battles
+                        <ul>
+                            <li>Select difficulty level (1-500)</li>
+                            <li>Higher levels = more enemies & stronger units</li>
+                            <li>Win to progress, lose and retry!</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+            
+            <div class="instruction-section">
+                <h3>⚔️ Unit Types</h3>
+                <ul>
+                    <li><strong>Infantry</strong> - Balanced melee units (Knight, Warrior, Soldier, Pikeman)</li>
+                    <li><strong>Ranged</strong> - Attack from distance (Archer, Crossbowman, Longbowman)</li>
+                    <li><strong>Magic</strong> - Powerful spellcasters (Mage, Wizard, Sorcerer)</li>
+                    <li><strong>Healers</strong> - Support units that heal allies</li>
+                    <li><strong>Heavy Melee</strong> - High damage fighters (Barbarian, Berserker, Assassin)</li>
+                    <li><strong>Cavalry</strong> - Fast mounted units (Horseman, Knight Rider, Cavalry)</li>
+                    <li><strong>Defense</strong> - Tanky units (Guardian, Sentinel, Wall, Bunker)</li>
+                    <li><strong>Special</strong> - Mythical creatures (Dragon, Phoenix, Golem, Demon)</li>
+                </ul>
+            </div>
+            
+            <div class="instruction-section">
+                <h3>📊 Unit Stats</h3>
+                <ul>
+                    <li><strong>HP</strong> - Health Points (more = more durable)</li>
+                    <li><strong>ATK</strong> - Attack damage per hit</li>
+                    <li><strong>RNG</strong> - Attack range (melee vs ranged)</li>
+                    <li><strong>SPD</strong> - Movement speed</li>
+                    <li><strong>Heal</strong> - Healing ability (for healer units)</li>
+                </ul>
+            </div>
+            
+            <div class="instruction-section">
+                <h3>🎯 Tips & Tricks</h3>
+                <ul>
+                    <li>Combine ranged units with melee frontlines</li>
+                    <li>Use healers to keep your frontlines alive</li>
+                    <li>Cavalry is great for flanking and catching archers</li>
+                    <li>In void maps, position carefully or your units will fall!</li>
+                    <li>Special units (Dragon, Golem) are expensive but powerful</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Game Container (hidden initially) -->
+    <div class="game-container" style="display: none;">
+        <!-- Money Display -->
+        <div id="topMoneyDisplay" class="top-money-display" style="display: none;">
+            <span class="red-money">🔴 $<span id="topRedMoney">0</span></span>
+            <span class="blue-money">🔵 $<span id="topBlueMoney">0</span></span>
+        </div>
+        
+        <header>
+            <h1>⚔️ BattleGrid Command ⚔️</h1>
+            <div id="headerMoney" class="header-money">
+                <span class="red">🔴 $<span id="headerRedMoney">0</span></span>
+                <span class="blue">🔵 $<span id="headerBlueMoney">0</span></span>
+            </div>
+        </header>
+        
+        <div class="main-content">
+            <aside class="control-panel">
+                <div class="panel-section units-section">
+                    <h2>Select Unit</h2>
+                    
+                    <!-- Unit Category Tabs -->
+                    <div class="unit-tabs">
+                        <button class="unit-tab active" data-category="all">All Units</button>
+                    </div>
+                    
+                    <!-- Unit Info Display -->
+                    <div id="unitInfo" class="unit-info">
+                        <div class="unit-info-header">
+                            <span id="unitInfoIcon" class="unit-info-icon">🗡️</span>
+                            <span id="unitInfoName" class="unit-info-name">Knight</span>
+                        </div>
+                        <div class="unit-stats">
+                            <div class="stat"><span class="stat-label">HP:</span> <span id="unitInfoHP" class="stat-value">100</span></div>
+                            <div class="stat"><span class="stat-label">ATK:</span> <span id="unitInfoATK" class="stat-value">15</span></div>
+                            <div class="stat"><span class="stat-label">RNG:</span> <span id="unitInfoRNG" class="stat-value">20</span></div>
+                            <div class="stat"><span class="stat-label">SPD:</span> <span id="unitInfoSPD" class="stat-value">1.5</span></div>
+                        </div>
+                    </div>
+                    
+                    <div class="unit-buttons" id="unitButtonsContainer">
+                        <!-- 40+ Units -->
+                        <div class="unit-category" data-category="all">
+                            <!-- Infantry -->
+                            <button class="unit-btn" data-unit="knight"><span class="icon">🗡️</span><span class="name">Knight</span><span class="price">$50</span></button>
+                            <button class="unit-btn" data-unit="archer"><span class="icon">🏹</span><span class="name">Archer</span><span class="price">$50</span></button>
+                            <button class="unit-btn" data-unit="warrior"><span class="icon">⚔️</span><span class="name">Warrior</span><span class="price">$55</span></button>
+                            <button class="unit-btn" data-unit="soldier"><span class="icon">🛡️</span><span class="name">Soldier</span><span class="price">$45</span></button>
+                            <button class="unit-btn" data-unit="pikeman"><span class="icon">🔱</span><span class="name">Pikeman</span><span class="price">$55</span></button>
+                            <!-- Ranged -->
+                            <button class="unit-btn" data-unit="crossbowman"><span class="icon">🎯</span><span class="name">Crossbowman</span><span class="price">$55</span></button>
+                            <button class="unit-btn" data-unit="longbowman"><span class="icon">🎯</span><span class="name">Longbowman</span><span class="price">$60</span></button>
+                            <button class="unit-btn" data-unit="marksman"><span class="icon">🔫</span><span class="name">Marksman</span><span class="price">$65</span></button>
+                            <button class="unit-btn" data-unit="slinger"><span class="icon">🪨</span><span class="name">Slinger</span><span class="price">$40</span></button>
+                            <button class="unit-btn" data-unit="javelineer"><span class="icon">🔻</span><span class="name">Javelineer</span><span class="price">$50</span></button>
+                            <!-- Magic -->
+                            <button class="unit-btn" data-unit="mage"><span class="icon">🔮</span><span class="name">Mage</span><span class="price">$80</span></button>
+                            <button class="unit-btn" data-unit="wizard"><span class="icon">🧙</span><span class="name">Wizard</span><span class="price">$100</span></button>
+                            <button class="unit-btn" data-unit="sorcerer"><span class="icon">🧙‍♂️</span><span class="name">Sorcerer</span><span class="price">$120</span></button>
+                            <button class="unit-btn" data-unit="warlock"><span class="icon">🧟</span><span class="name">Warlock</span><span class="price">$130</span></button>
+                            <button class="unit-btn" data-unit="necromancer"><span class="icon">💀</span><span class="name">Necromancer</span><span class="price">$140</span></button>
+                            <button class="unit-btn" data-unit="elemental"><span class="icon">🔥</span><span class="name">Elemental</span><span class="price">$110</span></button>
+                            <button class="unit-btn" data-unit="druid"><span class="icon">🌿</span><span class="name">Druid</span><span class="price">$75</span></button>
+                            <!-- Healer -->
+                            <button class="unit-btn" data-unit="healer"><span class="icon">💚</span><span class="name">Healer</span><span class="price">$70</span></button>
+                            <button class="unit-btn" data-unit="priest"><span class="icon">✝️</span><span class="name">Priest</span><span class="price">$75</span></button>
+                            <button class="unit-btn" data-unit="cleric"><span class="icon">☪️</span><span class="name">Cleric</span><span class="price">$75</span></button>
+                            <button class="unit-btn" data-unit="shaman"><span class="icon">🪶</span><span class="name">Shaman</span><span class="price">$70</span></button>
+                            <!-- Heavy Melee -->
+                            <button class="unit-btn" data-unit="barbarian"><span class="icon">🪓</span><span class="name">Barbarian</span><span class="price">$60</span></button>
+                            <button class="unit-btn" data-unit="berserker"><span class="icon">😡</span><span class="name">Berserker</span><span class="price">$75</span></button>
+                            <button class="unit-btn" data-unit="executioner"><span class="icon">🗡️</span><span class="name">Executioner</span><span class="price">$85</span></button>
+                            <button class="unit-btn" data-unit="gladiator"><span class="icon">🎭</span><span class="name">Gladiator</span><span class="price">$70</span></button>
+                            <button class="unit-btn" data-unit="champion"><span class="icon">🏅</span><span class="name">Champion</span><span class="price">$90</span></button>
+                            <button class="unit-btn" data-unit="assassin"><span class="icon">🗡️</span><span class="name">Assassin</span><span class="price">$80</span></button>
+                            <button class="unit-btn" data-unit="ninja"><span class="icon">🥷</span><span class="name">Ninja</span><span class="price">$85</span></button>
+                            <!-- Cavalry -->
+                            <button class="unit-btn" data-unit="horseman"><span class="icon">🐴</span><span class="name">Horseman</span><span class="price">$65</span></button>
+                            <button class="unit-btn" data-unit="knight_rider"><span class="icon">🐎</span><span class="name">Knight Rider</span><span class="price">$80</span></button>
+                            <button class="unit-btn" data-unit="cavalry"><span class="icon">🏇</span><span class="name">Cavalry</span><span class="price">$85</span></button>
+                            <button class="unit-btn" data-unit="lancer"><span class="icon">🔫</span><span class="name">Lancer</span><span class="price">$75</span></button>
+                            <button class="unit-btn" data-unit="chivalry"><span class="icon">🛡️</span><span class="name">Chivalry</span><span class="price">$95</span></button>
+                            <!-- Defense -->
+                            <button class="unit-btn" data-unit="guardian"><span class="icon">🛡️</span><span class="name">Guardian</span><span class="price">$70</span></button>
+                            <button class="unit-btn" data-unit="sentinel"><span class="icon">🚪</span><span class="name">Sentinel</span><span class="price">$65</span></button>
+                            <button class="unit-btn" data-unit="shield_bearer"><span class="icon">🛡️</span><span class="name">Shield Bearer</span><span class="price">$60</span></button>
+                            <button class="unit-btn" data-unit="wall"><span class="icon">🧱</span><span class="name">Wall</span><span class="price">$30</span></button>
+                            <button class="unit-btn" data-unit="bunker"><span class="icon">🏰</span><span class="name">Bunker</span><span class="price">$50</span></button>
+                            <!-- Fast -->
+                            <button class="unit-btn" data-unit="scout"><span class="icon">🏃</span><span class="name">Scout</span><span class="price">$35</span></button>
+                            <button class="unit-btn" data-unit="spy"><span class="icon">🎭</span><span class="name">Spy</span><span class="price">$55</span></button>
+                            <button class="unit-btn" data-unit="saboteur"><span class="icon">💣</span><span class="name">Saboteur</span><span class="price">$60</span></button>
+                            <!-- Special -->
+                            <button class="unit-btn" data-unit="golem"><span class="icon">🗿</span><span class="name">Golem</span><span class="price">$200</span></button>
+                            <button class="unit-btn" data-unit="phoenix"><span class="icon">🔥</span><span class="name">Phoenix</span><span class="price">$250</span></button>
+                            <button class="unit-btn" data-unit="dragon"><span class="icon">🐉</span><span class="name">Dragon</span><span class="price">$300</span></button>
+                            <button class="unit-btn" data-unit="demon"><span class="icon">👹</span><span class="name">Demon</span><span class="price">$280</span></button>
+                            <button class="unit-btn" data-unit="angel"><span class="icon">👼</span><span class="name">Angel</span><span class="price">$260</span></button>
+                            <button class="unit-btn" data-unit="vampire"><span class="icon">🧛</span><span class="name">Vampire</span><span class="price">$150</span></button>
+                            <button class="unit-btn" data-unit="werewolf"><span class="icon">🐺</span><span class="name">Werewolf</span><span class="price">$140</span></button>
+                            <button class="unit-btn" data-unit="ghost"><span class="icon">👻</span><span class="name">Ghost</span><span class="price">$100</span></button>
+                            <button class="unit-btn" data-unit="genie"><span class="icon">🧞</span><span class="name">Genie</span><span class="price">$180</span></button>
+                            <button class="unit-btn" data-unit="fairy"><span class="icon">🧚</span><span class="name">Fairy</span><span class="price">$90</span></button>
+                        </div>
+                        
+                        <!-- Infantry Units -->
+                        <div class="unit-category hidden" data-category="infantry">
+                            <button class="unit-btn" data-unit="knight"><span class="icon">🗡️</span><span class="name">Knight</span></button>
+                            <button class="unit-btn" data-unit="warrior"><span class="icon">⚔️</span><span class="name">Warrior</span></button>
+                            <button class="unit-btn" data-unit="soldier"><span class="icon">🛡️</span><span class="name">Soldier</span></button>
+                            <button class="unit-btn" data-unit="pikeman"><span class="icon">🔱</span><span class="name">Pikeman</span></button>
+                            <button class="unit-btn" data-unit="scout"><span class="icon">🏃</span><span class="name">Scout</span></button>
+                        </div>
+                        
+                        <!-- Ranged Units -->
+                        <div class="unit-category hidden" data-category="ranged">
+                            <button class="unit-btn" data-unit="archer"><span class="icon">🏹</span><span class="name">Archer</span></button>
+                            <button class="unit-btn" data-unit="crossbowman"><span class="icon">🎯</span><span class="name">Crossbowman</span></button>
+                            <button class="unit-btn" data-unit="longbowman"><span class="icon">🎯</span><span class="name">Longbowman</span></button>
+                            <button class="unit-btn" data-unit="marksman"><span class="icon">🔫</span><span class="name">Marksman</span></button>
+                            <button class="unit-btn" data-unit="slinger"><span class="icon">🪨</span><span class="name">Slinger</span></button>
+                            <button class="unit-btn" data-unit="javelineer"><span class="icon">🔻</span><span class="name">Javelineer</span></button>
+                        </div>
+                        
+                        <!-- Magic Units -->
+                        <div class="unit-category hidden" data-category="magic">
+                            <button class="unit-btn" data-unit="mage"><span class="icon">🔮</span><span class="name">Mage</span></button>
+                            <button class="unit-btn" data-unit="wizard"><span class="icon">🧙</span><span class="name">Wizard</span></button>
+                            <button class="unit-btn" data-unit="sorcerer"><span class="icon">🧙‍♂️</span><span class="name">Sorcerer</span></button>
+                            <button class="unit-btn" data-unit="warlock"><span class="icon">🧟</span><span class="name">Warlock</span></button>
+                            <button class="unit-btn" data-unit="necromancer"><span class="icon">💀</span><span class="name">Necromancer</span></button>
+                        </div>
+                        
+                        <!-- Healer Units -->
+                        <div class="unit-category hidden" data-category="healer">
+                            <button class="unit-btn" data-unit="healer"><span class="icon">💚</span><span class="name">Healer</span></button>
+                            <button class="unit-btn" data-unit="priest"><span class="icon">✝️</span><span class="name">Priest</span></button>
+                            <button class="unit-btn" data-unit="cleric"><span class="icon">☪️</span><span class="name">Cleric</span></button>
+                            <button class="unit-btn" data-unit="druid"><span class="icon">🌿</span><span class="name">Druid</span></button>
+                            <button class="unit-btn" data-unit="shaman"><span class="icon">🪶</span><span class="name">Shaman</span></button>
+                        </div>
+                        
+                        <!-- Heavy Melee Units -->
+                        <div class="unit-category hidden" data-category="heavy">
+                            <button class="unit-btn" data-unit="barbarian"><span class="icon">🪓</span><span class="name">Barbarian</span></button>
+                            <button class="unit-btn" data-unit="berserker"><span class="icon">😡</span><span class="name">Berserker</span></button>
+                            <button class="unit-btn" data-unit="executioner"><span class="icon">🗡️</span><span class="name">Executioner</span></button>
+                            <button class="unit-btn" data-unit="gladiator"><span class="icon">🎭</span><span class="name">Gladiator</span></button>
+                            <button class="unit-btn" data-unit="champion"><span class="icon">🏅</span><span class="name">Champion</span></button>
+                            <button class="unit-btn" data-unit="assassin"><span class="icon">🗡️</span><span class="name">Assassin</span></button>
+                            <button class="unit-btn" data-unit="ninja"><span class="icon">🥷</span><span class="name">Ninja</span></button>
+                        </div>
+                        
+                        <!-- Cavalry Units -->
+                        <div class="unit-category hidden" data-category="cavalry">
+                            <button class="unit-btn" data-unit="horseman"><span class="icon">🐴</span><span class="name">Horseman</span></button>
+                            <button class="unit-btn" data-unit="knight_rider"><span class="icon">🐎</span><span class="name">Knight Rider</span></button>
+                            <button class="unit-btn" data-unit="cavalry"><span class="icon">🏇</span><span class="name">Cavalry</span></button>
+                            <button class="unit-btn" data-unit="lancer"><span class="icon">🔫</span><span class="name">Lancer</span></button>
+                            <button class="unit-btn" data-unit="chivalry"><span class="icon">🛡️</span><span class="name">Chivalry</span></button>
+                        </div>
+                        
+                        <!-- Defense Units -->
+                        <div class="unit-category hidden" data-category="defense">
+                            <button class="unit-btn" data-unit="guardian"><span class="icon">🛡️</span><span class="name">Guardian</span></button>
+                            <button class="unit-btn" data-unit="sentinel"><span class="icon">🚪</span><span class="name">Sentinel</span></button>
+                            <button class="unit-btn" data-unit="shield_bearer"><span class="icon">🛡️</span><span class="name">Shield Bearer</span></button>
+                            <button class="unit-btn" data-unit="wall"><span class="icon">🧱</span><span class="name">Wall</span></button>
+                            <button class="unit-btn" data-unit="bunker"><span class="icon">🏰</span><span class="name">Bunker</span></button>
+                        </div>
+                        
+                        <!-- Special Units -->
+                        <div class="unit-category hidden" data-category="special">
+                            <button class="unit-btn" data-unit="dragon"><span class="icon">🐉</span><span class="name">Dragon</span></button>
+                            <button class="unit-btn" data-unit="golem"><span class="icon">🗿</span><span class="name">Golem</span></button>
+                            <button class="unit-btn" data-unit="elemental"><span class="icon">🔥</span><span class="name">Elemental</span></button>
+                            <button class="unit-btn" data-unit="phoenix"><span class="icon">🔥</span><span class="name">Phoenix</span></button>
+                            <button class="unit-btn" data-unit="titan"><span class="icon">⚡</span><span class="name">Titan</span></button>
+                            <button class="unit-btn" data-unit="spy"><span class="icon">🎭</span><span class="name">Spy</span></button>
+                            <button class="unit-btn" data-unit="saboteur"><span class="icon">💣</span><span class="name">Saboteur</span></button>
+                        </div>
+                    </div>
+                </div>
+
+                
+                <div class="panel-section">
+                    <h2>Select Team</h2>
+                    <div class="team-toggle">
+                        <button class="team-btn red active" data-team="red">🔴 Red Team</button>
+                        <button class="team-btn blue" data-team="blue">🔵 Blue Team</button>
+                    </div>
+                </div>
+                
+                <div class="panel-section">
+                    <h2>Camera Controls</h2>
+                    <div class="camera-controls">
+                        <p>🖱️ Drag to rotate</p>
+                        <p>⚙️ Scroll to zoom</p>
+                        <p>⬅️➡️ Arrow keys</p>
+                    </div>
+                </div>
+                
+                <div class="panel-section">
+                    <h2>Actions</h2>
+                    <div class="action-buttons">
+                        <button id="startBtn" class="action-btn start">⚔️ Start Battle</button>
+                        <button id="resetBtn" class="action-btn reset">🔄 Reset</button>
+                        <button id="clearBtn" class="action-btn clear">🗑️ Clear Field</button>
+                    </div>
+                </div>
+                
+                <div class="panel-section stats">
+                    <h2>Battle Stats</h2>
+                    <div class="stat-row">
+                        <span class="red-stat">🔴 Red: <span id="redCount">0</span>/50</span>
+                        <span class="blue-stat">🔵 Blue: <span id="blueCount">0</span>/50</span>
+                    </div>
+                    <div id="battleStatus" class="battle-status">Place your soldiers!</div>
+                </div>
+            </aside>
+            
+            <main class="battlefield-container" id="battlefieldContainer">
+                <div id="3d-viewport"></div>
+            </main>
+        </div>
+    </div>
+    
+    <div id="winnerOverlay" class="winner-overlay hidden">
+        <div class="winner-content">
+            <h2 id="winnerText">Red Team Wins!</h2>
+            <button id="playAgainBtn">Play Again</button>
+        </div>
+    </div>
+    
+    <script src="game.js"></script>
+</body>
+</html>
