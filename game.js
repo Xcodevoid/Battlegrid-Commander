@@ -133,6 +133,7 @@ function init() {
 function setupMainMenu() {
     const mainMenu = document.getElementById('mainMenu');
     const levelSelect = document.getElementById('levelSelect');
+    const sandboxSetup = document.getElementById('sandboxSetup');
     const sandboxBtn = document.getElementById('sandboxBtn');
     const normalBtn = document.getElementById('normalBtn');
     const gameContainer = document.querySelector('.game-container');
@@ -143,9 +144,40 @@ function setupMainMenu() {
     
     sandboxBtn.addEventListener('click', () => {
         mainMenu.style.display = 'none';
+        sandboxSetup.classList.remove('hidden');
+    });
+    
+    // Sandbox setup button handlers
+    document.getElementById('sandboxBackBtn').addEventListener('click', () => {
+        sandboxSetup.classList.add('hidden');
+        mainMenu.style.display = 'flex';
+    });
+    
+    document.getElementById('sandboxStartBtn').addEventListener('click', () => {
+        // Get settings
+        const playerCountInput = document.querySelector('input[name="players"]:checked');
+        const playerCount = playerCountInput ? parseInt(playerCountInput.value) : 1;
+        const mapOption = document.querySelector('.map-option.selected');
+        const selectedMap = mapOption ? mapOption.dataset.map : 'plain';
+        const moneySlider = document.getElementById('sandboxMoneySlider');
+        const unitsSlider = document.getElementById('maxUnitsSlider');
+        
+        sandboxMoney = moneySlider ? parseInt(moneySlider.value) : 1000;
+        maxUnitsPerTeam = unitsSlider ? parseInt(unitsSlider.value) : 50;
+        currentMap = selectedMap;
+        
+        sandboxSetup.classList.add('hidden');
         gameContainer.style.display = 'flex';
         gameMode = 'sandbox';
         startSandbox();
+    });
+    
+    // Map selection in sandbox setup
+    document.querySelectorAll('.map-option').forEach(opt => {
+        opt.addEventListener('click', () => {
+            document.querySelectorAll('.map-option').forEach(o => o.classList.remove('selected'));
+            opt.classList.add('selected');
+        });
     });
     
     normalBtn.addEventListener('click', () => {
@@ -338,6 +370,17 @@ function setupEventListeners() {
             selectedTeam = btn.dataset.team;
         });
     });
+    
+    // Force Red team in campaign mode
+    if (gameMode === 'campaign') {
+        selectedTeam = 'red';
+        document.querySelectorAll('.team-btn').forEach(b => {
+            b.classList.remove('active');
+            if (b.dataset.team === 'red') {
+                b.classList.add('active');
+            }
+        });
+    }
     
     // Click to place units
     renderer.domElement.addEventListener('click', function(e) {
@@ -1997,8 +2040,8 @@ function startNextLevel() {
     // Re-setup event listeners for the new renderer
     setupEventListeners();
     
-    // Give more money - but also make enemies stronger
-    campaignMoney = 400 + (currentLevel * 40);
+    // Give more money - scales with level
+    campaignMoney = 350 + (currentLevel * 50);
     redMoney = campaignMoney;
     blueMoney = 0;
     
@@ -2009,24 +2052,108 @@ function startNextLevel() {
     // Update display
     updateCampaignMoneyDisplay();
     
-    // Spawn enemies - they get slightly stronger each level
-    const baseEnemies = 2 + Math.floor(currentLevel * 0.3);
-    const enemyCount = Math.min(baseEnemies, 8); // Cap at 8 enemies
+    // Calculate enemy count based on level - scales progressively
+    let enemyCount;
+    if (currentLevel <= 3) enemyCount = 2;
+    else if (currentLevel <= 5) enemyCount = 3;
+    else if (currentLevel <= 10) enemyCount = 4;
+    else if (currentLevel <= 20) enemyCount = 5;
+    else if (currentLevel <= 30) enemyCount = 6;
+    else if (currentLevel <= 50) enemyCount = 7;
+    else enemyCount = 8 + Math.floor((currentLevel - 50) / 25); // Cap at ~12 for very high levels
     
+    // Determine enemy types based on level - progressively harder
+    const enemyTypes = [];
+    
+    // Level 1-2: Just soldiers
+    if (currentLevel <= 2) {
+        for (let i = 0; i < enemyCount; i++) enemyTypes.push('soldier');
+    }
+    // Level 3-4: Soldiers and some knights
+    else if (currentLevel <= 4) {
+        for (let i = 0; i < enemyCount; i++) {
+            enemyTypes.push(Math.random() < 0.5 ? 'soldier' : 'knight');
+        }
+    }
+    // Level 5-9: Mix of soldiers, knights, warriors
+    else if (currentLevel <= 9) {
+        for (let i = 0; i < enemyCount; i++) {
+            const r = Math.random();
+            if (r < 0.3) enemyTypes.push('soldier');
+            else if (r < 0.6) enemyTypes.push('knight');
+            else enemyTypes.push('warrior');
+        }
+    }
+    // Level 10-19: Add barbarians and archers
+    else if (currentLevel <= 19) {
+        for (let i = 0; i < enemyCount; i++) {
+            const r = Math.random();
+            if (r < 0.25) enemyTypes.push('soldier');
+            else if (r < 0.45) enemyTypes.push('knight');
+            else if (r < 0.65) enemyTypes.push('warrior');
+            else if (r < 0.8) enemyTypes.push('barbarian');
+            else enemyTypes.push('archer');
+        }
+    }
+    // Level 20-39: Add pikemen, berserkers, crossbowmen
+    else if (currentLevel <= 39) {
+        for (let i = 0; i < enemyCount; i++) {
+            const r = Math.random();
+            if (r < 0.15) enemyTypes.push('soldier');
+            else if (r < 0.3) enemyTypes.push('knight');
+            else if (r < 0.45) enemyTypes.push('warrior');
+            else if (r < 0.6) enemyTypes.push('barbarian');
+            else if (r < 0.75) enemyTypes.push('archer');
+            else if (r < 0.85) enemyTypes.push('pikeman');
+            else enemyTypes.push('berserker');
+        }
+    }
+    // Level 40-69: Add mages, champions
+    else if (currentLevel <= 69) {
+        for (let i = 0; i < enemyCount; i++) {
+            const r = Math.random();
+            if (r < 0.1) enemyTypes.push('knight');
+            else if (r < 0.2) enemyTypes.push('warrior');
+            else if (r < 0.35) enemyTypes.push('barbarian');
+            else if (r < 0.5) enemyTypes.push('archer');
+            else if (r < 0.6) enemyTypes.push('pikeman');
+            else if (r < 0.75) enemyTypes.push('berserker');
+            else if (r < 0.85) enemyTypes.push('mage');
+            else enemyTypes.push('champion');
+        }
+    }
+    // Level 70-99: Add golems, assassins
+    else if (currentLevel <= 99) {
+        for (let i = 0; i < enemyCount; i++) {
+            const r = Math.random();
+            if (r < 0.15) enemyTypes.push('warrior');
+            else if (r < 0.3) enemyTypes.push('barbarian');
+            else if (r < 0.45) enemyTypes.push('archer');
+            else if (r < 0.55) enemyTypes.push('berserker');
+            else if (r < 0.65) enemyTypes.push('mage');
+            else if (r < 0.75) enemyTypes.push('champion');
+            else if (r < 0.85) enemyTypes.push('golem');
+            else enemyTypes.push('assassin');
+        }
+    }
+    // Level 100+: Add dragons, demons, vampires
+    else {
+        for (let i = 0; i < enemyCount; i++) {
+            const r = Math.random();
+            if (r < 0.15) enemyTypes.push('archer');
+            else if (r < 0.25) enemyTypes.push('mage');
+            else if (r < 0.35) enemyTypes.push('champion');
+            else if (r < 0.5) enemyTypes.push('golem');
+            else if (r < 0.65) enemyTypes.push('assassin');
+            else if (r < 0.8) enemyTypes.push('vampire');
+            else if (r < 0.9) enemyTypes.push('demon');
+            else enemyTypes.push('dragon');
+        }
+    }
+    
+    // Spawn enemies
     for (let i = 0; i < enemyCount; i++) {
-        // Mix of knight and soldier, more knights at higher levels
-        const knightChance = Math.min(0.3 + (currentLevel * 0.05), 0.7);
-        const type = Math.random() < knightChance ? 'knight' : 'soldier';
-        
-        // Add some variety at higher levels
-        if (currentLevel >= 5 && Math.random() < 0.2) {
-            type = 'barbarian';
-        }
-        if (currentLevel >= 10 && Math.random() < 0.15) {
-            type = 'archer';
-        }
-        
-        addUnit(40 + Math.random() * 30, -30 + Math.random() * 60, type, 'blue');
+        addUnit(40 + Math.random() * 30, -30 + Math.random() * 60, enemyTypes[i], 'blue');
     }
     
     battleStatus.textContent = `Level ${currentLevel} - Place your units! (Enemies: ${enemyCount})`;

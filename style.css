@@ -1,3 +1,58 @@
+/* Players Selection */
+.players-selection {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.player-option {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px;
+    background: rgba(0, 0, 0, 0.3);
+    border: 2px solid transparent;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    flex-direction: column;
+    text-align: center;
+}
+
+.player-option:hover {
+    border-color: var(--gold);
+}
+
+.player-option input {
+    display: none;
+}
+
+.player-option:has(input:checked) {
+    border-color: var(--accent);
+    background: rgba(233, 69, 96, 0.2);
+}
+
+.player-option span:first-of-type {
+    font-weight: 600;
+    color: var(--text);
+    font-size: 14px;
+}
+
+.player-desc {
+    font-size: 11px;
+    color: var(--text-dim);
+}
+
+/* Money and Units Sliders */
+.money-value {
+    text-align: center;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 18px;
+    color: var(--gold);
+    margin-top: 8px;
+}
+
 /* Level Select Screen */
 .level-select {
     position: fixed;

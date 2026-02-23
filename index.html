@@ -39,6 +39,71 @@
         </div>
     </div>
     
+    <!-- Sandbox Setup Modal -->
+    <div id="sandboxSetup" class="sandbox-setup hidden">
+        <div class="setup-content">
+            <h2>🏖️ Sandbox Mode Setup</h2>
+            
+            <!-- Players Selection -->
+            <div class="setup-section">
+                <h3>👥 Number of Players</h3>
+                <div class="players-selection">
+                    <label class="player-option">
+                        <input type="radio" name="players" value="1" checked>
+                        <span>1 Player</span>
+                        <span class="player-desc">(vs AI)</span>
+                    </label>
+                    <label class="player-option">
+                        <input type="radio" name="players" value="2">
+                        <span>2 Players</span>
+                    </label>
+                    <label class="player-option">
+                        <input type="radio" name="players" value="3">
+                        <span>3 Players</span>
+                    </label>
+                    <label class="player-option">
+                        <input type="radio" name="players" value="4">
+                        <span>4 Players</span>
+                    </label>
+                </div>
+            </div>
+            
+            <!-- Map Selection -->
+            <div class="setup-section">
+                <h3>🗺️ Select Map</h3>
+                <div class="map-grid">
+                    <div class="map-option selected" data-map="plain">
+                        <div class="map-name">Plain</div>
+                        <div class="map-desc">Open battlefield</div>
+                    </div>
+                    <div class="map-option" data-map="arena">
+                        <div class="map-name">Arena</div>
+                        <div class="map-desc">Circular arena</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Money -->
+            <div class="setup-section">
+                <h3>💰 Starting Money</h3>
+                <input type="range" id="sandboxMoneySlider" min="100" max="5000" value="1000" step="100">
+                <div class="money-value">$<span id="sandboxMoneyValue">1000</span></div>
+            </div>
+            
+            <!-- Max Units -->
+            <div class="setup-section">
+                <h3>⚔️ Max Units Per Team</h3>
+                <input type="range" id="maxUnitsSlider" min="1" max="100" value="50">
+                <div class="money-value"><span id="maxUnitsValue">50</span> units</div>
+            </div>
+            
+            <div class="setup-buttons">
+                <button class="back-btn" id="sandboxBackBtn">⬅️ Back</button>
+                <button class="start-btn" id="sandboxStartBtn">Start Game ▶</button>
+            </div>
+        </div>
+    </div>
+    
     <!-- Instructions Modal -->
     <div id="instructionsModal" class="instructions-modal hidden">
         <div class="instructions-content">
@@ -339,7 +404,7 @@
                     <h2>Actions</h2>
                     <div class="action-buttons">
                         <button id="startBtn" class="action-btn start">⚔️ Start Battle</button>
-                        <button id="resetBtn" class="action-btn reset">🔄 Reset</button>
+                        <button id="resetBtn" class="action-btn reset">🏠 Return to Menu</button>
                         <button id="clearBtn" class="action-btn clear">🗑️ Clear Field</button>
                     </div>
                 </div>
