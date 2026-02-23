@@ -44,30 +44,6 @@
         <div class="setup-content">
             <h2>🏖️ Sandbox Mode Setup</h2>
             
-            <!-- Players Selection -->
-            <div class="setup-section">
-                <h3>👥 Number of Players</h3>
-                <div class="players-selection">
-                    <label class="player-option">
-                        <input type="radio" name="players" value="1" checked>
-                        <span>1 Player</span>
-                        <span class="player-desc">(vs AI)</span>
-                    </label>
-                    <label class="player-option">
-                        <input type="radio" name="players" value="2">
-                        <span>2 Players</span>
-                    </label>
-                    <label class="player-option">
-                        <input type="radio" name="players" value="3">
-                        <span>3 Players</span>
-                    </label>
-                    <label class="player-option">
-                        <input type="radio" name="players" value="4">
-                        <span>4 Players</span>
-                    </label>
-                </div>
-            </div>
-            
             <!-- Map Selection -->
             <div class="setup-section">
                 <h3>🗺️ Select Map</h3>
@@ -80,21 +56,51 @@
                         <div class="map-name">Arena</div>
                         <div class="map-desc">Circular arena</div>
                     </div>
+                    <div class="map-option" data-map="forest">
+                        <div class="map-name">Forest</div>
+                        <div class="map-desc">Many obstacles</div>
+                    </div>
+                    <div class="map-option" data-map="desert">
+                        <div class="map-name">Desert</div>
+                        <div class="map-desc">Sandy battlefield</div>
+                    </div>
+                    <div class="map-option" data-map="snow">
+                        <div class="map-name">Snow</div>
+                        <div class="map-desc">Frozen terrain</div>
+                    </div>
+                    <div class="map-option" data-map="volcano">
+                        <div class="map-name">Volcano</div>
+                        <div class="map-desc">Lava rivers</div>
+                    </div>
                 </div>
             </div>
             
             <!-- Money -->
             <div class="setup-section">
                 <h3>💰 Starting Money</h3>
-                <input type="range" id="sandboxMoneySlider" min="100" max="5000" value="1000" step="100">
-                <div class="money-value">$<span id="sandboxMoneyValue">1000</span></div>
+                <input type="range" id="sandboxMoneySlider" min="100" max="10000" value="1000" step="100">
+                <div class="slider-row">
+                    <span class="slider-value" id="sandboxMoneyValue">$1000</span>
+                </div>
+                <label class="no-limit-toggle">
+                    <input type="checkbox" id="noMoneyLimit">
+                    <span class="toggle-slider"></span>
+                    <span class="toggle-label">No limit</span>
+                </label>
             </div>
             
             <!-- Max Units -->
             <div class="setup-section">
                 <h3>⚔️ Max Units Per Team</h3>
                 <input type="range" id="maxUnitsSlider" min="1" max="100" value="50">
-                <div class="money-value"><span id="maxUnitsValue">50</span> units</div>
+                <div class="slider-row">
+                    <span class="slider-value" id="maxUnitsValue">50 units</span>
+                </div>
+                <label class="no-limit-toggle">
+                    <input type="checkbox" id="noUnitsLimit">
+                    <span class="toggle-slider"></span>
+                    <span class="toggle-label">No limit</span>
+                </label>
             </div>
             
             <div class="setup-buttons">

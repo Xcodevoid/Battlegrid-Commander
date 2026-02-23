@@ -85,8 +85,12 @@ const UNIT_PRICES = {
 };
 
 const MAPS = {
-    plain: { name: 'Plain', size: 200, color: 0x2d5a3e },
-    arena: { name: 'Arena', size: 120, color: 0x4a3728 }
+    plain: { name: 'Plain', size: 200, color: 0x3d7a3d, groundColor: 0x2d5a3e },
+    arena: { name: 'Arena', size: 140, color: 0x4a4a4a, groundColor: 0x3d3d3d },
+    forest: { name: 'Forest', size: 200, color: 0x1a4a1a, groundColor: 0x1a4a1a },
+    desert: { name: 'Desert', size: 200, color: 0xd4a560, groundColor: 0xd4a560 },
+    snow: { name: 'Snow', size: 180, color: 0xe8f0f8, groundColor: 0xddeeff },
+    volcano: { name: 'Volcano', size: 150, color: 0x4a1a1a, groundColor: 0x2a0a0a }
 };
 
 // ==================== GAME STATE ====================
@@ -155,22 +159,104 @@ function setupMainMenu() {
     
     document.getElementById('sandboxStartBtn').addEventListener('click', () => {
         // Get settings
-        const playerCountInput = document.querySelector('input[name="players"]:checked');
-        const playerCount = playerCountInput ? parseInt(playerCountInput.value) : 1;
         const mapOption = document.querySelector('.map-option.selected');
         const selectedMap = mapOption ? mapOption.dataset.map : 'plain';
-        const moneySlider = document.getElementById('sandboxMoneySlider');
-        const unitsSlider = document.getElementById('maxUnitsSlider');
         
-        sandboxMoney = moneySlider ? parseInt(moneySlider.value) : 1000;
-        maxUnitsPerTeam = unitsSlider ? parseInt(unitsSlider.value) : 50;
+        // Get money slider value
+        const moneySlider = document.getElementById('sandboxMoneySlider');
+        const moneyValue = moneySlider ? parseInt(moneySlider.value) : 1000;
+        
+        // Check if no money limit is checked
+        const noMoneyLimit = document.getElementById('noMoneyLimit');
+        if (noMoneyLimit && noMoneyLimit.checked) {
+            sandboxMoney = 999999999; // No limit
+        } else {
+            sandboxMoney = moneyValue;
+        }
+        
+        // Get units slider value
+        const unitsSlider = document.getElementById('maxUnitsSlider');
+        const unitsValue = unitsSlider ? parseInt(unitsSlider.value) : 50;
+        
+        // Check if no units limit is checked
+        const noUnitsLimit = document.getElementById('noUnitsLimit');
+        if (noUnitsLimit && noUnitsLimit.checked) {
+            maxUnitsPerTeam = 999999999; // No limit
+        } else {
+            maxUnitsPerTeam = unitsValue;
+        }
+        
         currentMap = selectedMap;
+        
+        // Debug - check values
+        console.log("Starting sandbox with:", {
+            map: currentMap,
+            money: sandboxMoney,
+            units: maxUnitsPerTeam
+        });
         
         sandboxSetup.classList.add('hidden');
         gameContainer.style.display = 'flex';
         gameMode = 'sandbox';
         startSandbox();
     });
+    
+    // Update slider value displays
+    const moneySlider = document.getElementById('sandboxMoneySlider');
+    const moneyValueEl = document.getElementById('sandboxMoneyValue');
+    if (moneySlider && moneyValueEl) {
+        moneySlider.addEventListener('input', () => {
+            updateMoneyDisplayWithLimit();
+        });
+    }
+    
+    const unitsSlider = document.getElementById('maxUnitsSlider');
+    const unitsValueEl = document.getElementById('maxUnitsValue');
+    if (unitsSlider && unitsValueEl) {
+        unitsSlider.addEventListener('input', () => {
+            updateUnitsDisplayWithLimit();
+        });
+    }
+    
+    // Listen to checkbox changes
+    const noMoneyLimit = document.getElementById('noMoneyLimit');
+    if (noMoneyLimit) {
+        noMoneyLimit.addEventListener('change', updateMoneyDisplayWithLimit);
+    }
+    
+    const noUnitsLimit = document.getElementById('noUnitsLimit');
+    if (noUnitsLimit) {
+        noUnitsLimit.addEventListener('change', updateUnitsDisplayWithLimit);
+    }
+    
+    // Update functions
+    function updateMoneyDisplayWithLimit() {
+        const moneySlider = document.getElementById('sandboxMoneySlider');
+        const noMoneyLimit = document.getElementById('noMoneyLimit');
+        const moneyValueEl = document.getElementById('sandboxMoneyValue');
+        
+        if (noMoneyLimit && noMoneyLimit.checked) {
+            moneyValueEl.innerHTML = '$∞ (No limit)';
+            moneySlider.disabled = true;
+        } else {
+            moneyValueEl.innerHTML = '$' + moneySlider.value;
+            moneySlider.disabled = false;
+        }
+    }
+    
+    function updateUnitsDisplayWithLimit() {
+        const unitsSlider = document.getElementById('maxUnitsSlider');
+        const noUnitsLimit = document.getElementById('noUnitsLimit');
+        const unitsValueEl = document.getElementById('maxUnitsValue');
+        
+        if (noUnitsLimit && noUnitsLimit.checked) {
+            unitsValueEl.innerHTML = '∞ (No limit)';
+            unitsSlider.disabled = true;
+        } else {
+            unitsValueEl.innerHTML = unitsSlider.value + ' units';
+            unitsSlider.disabled = false;
+        }
+    }
     
     // Map selection in sandbox setup
     document.querySelectorAll('.map-option').forEach(opt => {
@@ -213,11 +299,10 @@ function setupMainMenu() {
 }
 
 function startSandbox() {
-    maxUnitsPerTeam = 50;
-    sandboxMoney = 1000;
+    // Values are now set by the start button click handler before this is called
+    // Don't reset them here!
     redMoney = sandboxMoney;
     blueMoney = sandboxMoney;
-    currentMap = 'plain';
     
     initThreeJS();
     setupEventListeners();
@@ -305,9 +390,10 @@ function initThreeJS() {
     dirLight.position.set(50, 100, 50);
     scene.add(dirLight);
     
-    // Ground
+    // Ground - use groundColor if available, otherwise fall back to color
     const groundGeo = new THREE.PlaneGeometry(mapData.size, mapData.size);
-    const groundMat = new THREE.MeshStandardMaterial({ color: mapData.color });
+    const groundColor = mapData.groundColor || mapData.color;
+    const groundMat = new THREE.MeshStandardMaterial({ color: groundColor });
     groundPlane = new THREE.Mesh(groundGeo, groundMat);
     groundPlane.rotation.x = -Math.PI / 2;
     scene.add(groundPlane);
@@ -324,6 +410,164 @@ function initThreeJS() {
     centerLine.rotation.x = -Math.PI / 2;
     centerLine.position.y = 0.02;
     scene.add(centerLine);
+    
+    // === MAP-SPECIFIC FEATURES ===
+    
+    // FOREST - Add LOTS of trees and bushes
+    if (currentMap === 'forest') {
+        // Many trees
+        for (let i = 0; i < 60; i++) {
+            const x = (Math.random() - 0.5) * mapData.size * 0.85;
+            const z = (Math.random() - 0.5) * mapData.size * 0.85;
+            if (Math.abs(x) < 25) continue;
+            
+            const tree = createTree();
+            tree.position.set(x, 0, z);
+            tree.scale.setScalar(1.0 + Math.random() * 0.8);
+            scene.add(tree);
+        }
+        // Bushes
+        for (let i = 0; i < 40; i++) {
+            const x = (Math.random() - 0.5) * mapData.size * 0.8;
+            const z = (Math.random() - 0.5) * mapData.size * 0.8;
+            if (Math.abs(x) < 20) continue;
+            
+            const bush = createBush();
+            bush.position.set(x, 0, z);
+            scene.add(bush);
+        }
+    }
+    
+    // DESERT - Add pyramids, cacti, and sand dunes
+    if (currentMap === 'desert') {
+        // Large pyramids
+        for (let i = 0; i < 4; i++) {
+            const x = (Math.random() - 0.5) * mapData.size * 0.7;
+            const z = (Math.random() - 0.5) * mapData.size * 0.7;
+            if (Math.abs(x) < 30) continue;
+            
+            const pyramid = createPyramid();
+            pyramid.position.set(x, 0, z);
+            pyramid.scale.setScalar(1.2);
+            scene.add(pyramid);
+        }
+        // Cacti
+        for (let i = 0; i < 30; i++) {
+            const x = (Math.random() - 0.5) * mapData.size * 0.85;
+            const z = (Math.random() - 0.5) * mapData.size * 0.85;
+            if (Math.abs(x) < 20) continue;
+            
+            const cactus = createCactus();
+            cactus.position.set(x, 0, z);
+            scene.add(cactus);
+        }
+        // Sand dunes (bumps)
+        for (let i = 0; i < 15; i++) {
+            const x = (Math.random() - 0.5) * mapData.size * 0.8;
+            const z = (Math.random() - 0.5) * mapData.size * 0.8;
+            if (Math.abs(x) < 25) continue;
+            
+            const dune = createSandDune();
+            dune.position.set(x, 0, z);
+            scene.add(dune);
+        }
+    }
+    
+    // SNOW - Add snowmen, ice rocks, AND SNOW MOUNTAINS (smaller, inside map)
+    if (currentMap === 'snow') {
+        // SNOW MOUNTAINS - smaller, placed inside the map edges
+        for (let i = 0; i < 8; i++) {
+            const angle = (i / 8) * Math.PI * 2 + Math.random() * 0.3;
+            const radius = mapData.size / 2 - 40; // Inside the map
+            const x = Math.cos(angle) * radius;
+            const z = Math.sin(angle) * radius;
+            
+            const mountain = createSnowMountain();
+            mountain.position.set(x, 0, z);
+            mountain.scale.setScalar(0.6 + Math.random() * 0.4); // Much smaller
+            scene.add(mountain);
+        }
+        // Snowmen (smaller)
+        for (let i = 0; i < 12; i++) {
+            const x = (Math.random() - 0.5) * mapData.size * 0.5;
+            const z = (Math.random() - 0.5) * mapData.size * 0.5;
+            if (Math.abs(x) < 15) continue;
+            
+            const snowman = createSnowman();
+            snowman.position.set(x, 0, z);
+            snowman.scale.setScalar(0.6); // Smaller
+            scene.add(snowman);
+        }
+        // Ice rocks (smaller)
+        for (let i = 0; i < 15; i++) {
+            const x = (Math.random() - 0.5) * mapData.size * 0.5;
+            const z = (Math.random() - 0.5) * mapData.size * 0.5;
+            if (Math.abs(x) < 15) continue;
+            
+            const rock = createIceRock();
+            rock.position.set(x, 0, z);
+            rock.scale.setScalar(0.5);
+            scene.add(rock);
+        }
+    }
+    
+    // VOLCANO - Add lava rivers, rocks, AND VOLCANOES (smaller, inside map)
+    if (currentMap === 'volcano') {
+        // VOLCANOES - smaller, placed inside the map edges
+        for (let i = 0; i < 4; i++) {
+            const angle = (i / 4) * Math.PI * 2 + Math.random() * 0.2;
+            const radius = mapData.size / 2 - 35; // Inside the map
+            const x = Math.cos(angle) * radius;
+            const z = Math.sin(angle) * radius;
+            
+            const volcano = createVolcano();
+            volcano.position.set(x, 0, z);
+            volcano.scale.setScalar(0.6 + Math.random() * 0.3); // Much smaller
+            scene.add(volcano);
+        }
+        // Lava pools (smaller)
+        for (let i = 0; i < 8; i++) {
+            const x = (Math.random() - 0.5) * mapData.size * 0.5;
+            const z = (Math.random() - 0.5) * mapData.size * 0.5;
+            if (Math.abs(x) < 25) continue;
+            
+            const lava = createLavaPool();
+            lava.position.set(x, 0.05, z);
+            lava.scale.setScalar(0.5);
+            scene.add(lava);
+        }
+        // Volcanic rocks (smaller)
+        for (let i = 0; i < 15; i++) {
+            const x = (Math.random() - 0.5) * mapData.size * 0.6;
+            const z = (Math.random() - 0.5) * mapData.size * 0.6;
+            if (Math.abs(x) < 20) continue;
+            
+            const rock = createVolcanicRock();
+            rock.position.set(x, 0, z);
+            rock.scale.setScalar(0.3 + Math.random() * 0.4);
+            scene.add(rock);
+        }
+    }
+    
+    // ARENA - Add stone pillars around the edge and center
+    if (currentMap === 'arena') {
+        // Outer pillars
+        for (let i = 0; i < 20; i++) {
+            const angle = (i / 20) * Math.PI * 2;
+            const radius = mapData.size / 2 - 10;
+            const x = Math.cos(angle) * radius;
+            const z = Math.sin(angle) * radius;
+            
+            const pillar = createStonePillar();
+            pillar.position.set(x, 0, z);
+            pillar.lookAt(0, 0, 0);
+            scene.add(pillar);
+        }
+        // Center monument
+        const monument = createArenaMonument();
+        monument.position.set(0, 0, 0);
+        scene.add(monument);
+    }
     
     clock = new THREE.Clock();
     window.addEventListener('resize', onWindowResize);
@@ -1125,7 +1369,7 @@ function createLowPolyWarrior(type, team) {
 // Helper functions for creating 3D parts
 function createBox(w, h, d, color) {
     const geo = new THREE.BoxGeometry(w, h, d);
-    const mat = new THREE.MeshStandardMaterial({ color: color, flatShading: true });
+    const mat = new THREE.MeshStandardMaterial({ color: color, flatShading: true, roughness: 0.7, metalness: 0.1 });
     const mesh = new THREE.Mesh(geo, mat);
     mesh.castShadow = true;
     return mesh;
@@ -1265,6 +1509,274 @@ function createStaff(orbColor) {
     const orb = new THREE.Mesh(orbGeo, orbMat);
     orb.position.y = 3.8;
     group.add(orb);
+    
+    return group;
+}
+
+// === MAP FEATURE FUNCTIONS ===
+
+// Tree for Forest map
+function createTree() {
+    const group = new THREE.Group();
+    
+    // Trunk
+    const trunkGeo = new THREE.CylinderGeometry(0.3, 0.5, 3, 6);
+    const trunkMat = new THREE.MeshStandardMaterial({ color: 0x4A3520, flatShading: true });
+    const trunk = new THREE.Mesh(trunkGeo, trunkMat);
+    trunk.position.y = 1.5;
+    group.add(trunk);
+    
+    // Foliage (low-poly cone)
+    const foliageGeo = new THREE.ConeGeometry(2.5, 5, 6);
+    const foliageMat = new THREE.MeshStandardMaterial({ color: 0x1A5A1A, flatShading: true });
+    const foliage = new THREE.Mesh(foliageGeo, foliageMat);
+    foliage.position.y = 5;
+    group.add(foliage);
+    
+    return group;
+}
+
+// Pyramid for Desert map
+function createPyramid() {
+    const group = new THREE.Group();
+    
+    const geo = new THREE.ConeGeometry(6, 8, 4);
+    const mat = new THREE.MeshStandardMaterial({ color: 0xD4A574, flatShading: true });
+    const pyramid = new THREE.Mesh(geo, mat);
+    pyramid.position.y = 4;
+    pyramid.rotation.y = Math.PI / 4;
+    group.add(pyramid);
+    
+    return group;
+}
+
+// Cactus for Desert map
+function createCactus() {
+    const group = new THREE.Group();
+    
+    // Main body
+    const bodyGeo = new THREE.CylinderGeometry(0.3, 0.35, 2.5, 6);
+    const bodyMat = new THREE.MeshStandardMaterial({ color: 0x2D5A2D, flatShading: true });
+    const body = new THREE.Mesh(bodyGeo, bodyMat);
+    body.position.y = 1.25;
+    group.add(body);
+    
+    // Arms
+    const armGeo = new THREE.CylinderGeometry(0.15, 0.2, 0.8, 6);
+    const arm1 = new THREE.Mesh(armGeo, bodyMat);
+    arm1.position.set(0.4, 1.2, 0);
+    arm1.rotation.z = -0.5;
+    group.add(arm1);
+    
+    const arm2 = new THREE.Mesh(armGeo, bodyMat);
+    arm2.position.set(-0.3, 1.8, 0);
+    arm2.rotation.z = 0.4;
+    group.add(arm2);
+    
+    return group;
+}
+
+// Snowman for Snow map
+function createSnowman() {
+    const group = new THREE.Group();
+    
+    const snowMat = new THREE.MeshStandardMaterial({ color: 0xFAFAFA, flatShading: true });
+    
+    // Bottom ball
+    const bottom = new THREE.Mesh(new THREE.SphereGeometry(1.2, 8, 6), snowMat);
+    bottom.position.y = 1.2;
+    group.add(bottom);
+    
+    // Middle ball
+    const middle = new THREE.Mesh(new THREE.SphereGeometry(0.9, 8, 6), snowMat);
+    middle.position.y = 2.8;
+    group.add(middle);
+    
+    // Head
+    const head = new THREE.Mesh(new THREE.SphereGeometry(0.6, 8, 6), snowMat);
+    head.position.y = 4.0;
+    group.add(head);
+    
+    // Nose (carrot)
+    const nose = new THREE.Mesh(new THREE.ConeGeometry(0.1, 0.5, 4), new THREE.MeshStandardMaterial({ color: 0xFF6600, flatShading: true }));
+    nose.position.set(0, 4.0, 0.6);
+    nose.rotation.x = Math.PI / 2;
+    group.add(nose);
+    
+    return group;
+}
+
+// Ice rock for Snow map
+function createIceRock() {
+    const geo = new THREE.DodecahedronGeometry(1.5, 0);
+    const mat = new THREE.MeshStandardMaterial({ color: 0xADD8E6, flatShading: true, transparent: true, opacity: 0.8 });
+    const rock = new THREE.Mesh(geo, mat);
+    rock.position.y = 0.8;
+    rock.scale.y = 0.6;
+    return rock;
+}
+
+// Lava pool for Volcano map
+function createLavaPool() {
+    const group = new THREE.Group();
+    
+    const geo = new THREE.CircleGeometry(3, 8);
+    const mat = new THREE.MeshBasicMaterial({ color: 0xFF4500, transparent: true, opacity: 0.8 });
+    const lava = new THREE.Mesh(geo, mat);
+    lava.rotation.x = -Math.PI / 2;
+    group.add(lava);
+    
+    // Glowing center
+    const centerGeo = new THREE.CircleGeometry(1.5, 8);
+    const centerMat = new THREE.MeshBasicMaterial({ color: 0xFFFF00 });
+    const center = new THREE.Mesh(centerGeo, centerMat);
+    center.rotation.x = -Math.PI / 2;
+    center.position.y = 0.01;
+    group.add(center);
+    
+    return group;
+}
+
+// Volcanic rock for Volcano map
+function createVolcanicRock() {
+    const geo = new THREE.DodecahedronGeometry(1.2, 0);
+    const mat = new THREE.MeshStandardMaterial({ color: 0x2F1810, flatShading: true });
+    const rock = new THREE.Mesh(geo, mat);
+    rock.position.y = 0.6;
+    rock.scale.y = 0.7;
+    return rock;
+}
+
+// Stone pillar for Arena map
+function createStonePillar() {
+    const group = new THREE.Group();
+    
+    // Base
+    const baseGeo = new THREE.CylinderGeometry(1.5, 1.8, 2, 8);
+    const stoneMat = new THREE.MeshStandardMaterial({ color: 0x696969, flatShading: true });
+    const base = new THREE.Mesh(baseGeo, stoneMat);
+    base.position.y = 1;
+    group.add(base);
+    
+    // Column
+    const colGeo = new THREE.CylinderGeometry(1, 1.2, 6, 8);
+    const column = new THREE.Mesh(colGeo, stoneMat);
+    column.position.y = 5;
+    group.add(column);
+    
+    // Top
+    const topGeo = new THREE.CylinderGeometry(1.3, 1, 1.5, 8);
+    const top = new THREE.Mesh(topGeo, stoneMat);
+    top.position.y = 8.75;
+    group.add(top);
+    
+    return group;
+}
+
+// Bush for Forest map
+function createBush() {
+    const group = new THREE.Group();
+    
+    // Main bush
+    const bushGeo = new THREE.SphereGeometry(1.0, 6, 5);
+    const bushMat = new THREE.MeshStandardMaterial({ color: 0x2D5A2D, flatShading: true });
+    const bush = new THREE.Mesh(bushGeo, bushMat);
+    bush.position.y = 0.8;
+    bush.scale.set(1, 0.7, 1);
+    group.add(bush);
+    
+    // Smaller detail
+    const detailGeo = new THREE.SphereGeometry(0.6, 5, 4);
+    const detail = new THREE.Mesh(detailGeo, bushMat);
+    detail.position.set(0.4, 1.0, 0.3);
+    group.add(detail);
+    
+    return group;
+}
+
+// Sand dune for Desert map
+function createSandDune() {
+    const geo = new THREE.SphereGeometry(2.5, 8, 6, 0, Math.PI * 2, 0, Math.PI / 2);
+    const mat = new THREE.MeshStandardMaterial({ color: 0xD4B896, flatShading: true });
+    const dune = new THREE.Mesh(geo, mat);
+    dune.position.y = 0;
+    dune.scale.y = 0.3;
+    return dune;
+}
+
+// Snow Mountain for Snow map
+function createSnowMountain() {
+    const group = new THREE.Group();
+    
+    // Mountain peak
+    const geo = new THREE.ConeGeometry(8, 18, 6);
+    const mat = new THREE.MeshStandardMaterial({ color: 0xFAFAFA, flatShading: true });
+    const mountain = new THREE.Mesh(geo, mat);
+    mountain.position.y = 9;
+    group.add(mountain);
+    
+    // Snow cap (white top)
+    const capGeo = new THREE.ConeGeometry(3, 6, 6);
+    const capMat = new THREE.MeshStandardMaterial({ color: 0xFFFFFF, flatShading: true });
+    const cap = new THREE.Mesh(capGeo, capMat);
+    cap.position.y = 14;
+    group.add(cap);
+    
+    return group;
+}
+
+// Volcano for Volcano map
+function createVolcano() {
+    const group = new THREE.Group();
+    
+    // Volcano base
+    const baseGeo = new THREE.ConeGeometry(10, 15, 8);
+    const baseMat = new THREE.MeshStandardMaterial({ color: 0x3D1C0C, flatShading: true });
+    const volcano = new THREE.Mesh(baseGeo, baseMat);
+    volcano.position.y = 7.5;
+    group.add(volcano);
+    
+    // Lava crater at top
+    const craterGeo = new THREE.CylinderGeometry(3, 2, 2, 8);
+    const craterMat = new THREE.MeshBasicMaterial({ color: 0xFF4500 });
+    const crater = new THREE.Mesh(craterGeo, craterMat);
+    crater.position.y = 14;
+    group.add(crater);
+    
+    // Glowing center
+    const glowGeo = new THREE.CircleGeometry(2, 8);
+    const glowMat = new THREE.MeshBasicMaterial({ color: 0xFFFF00 });
+    const glow = new THREE.Mesh(glowGeo, glowMat);
+    glow.rotation.x = -Math.PI / 2;
+    glow.position.y = 14.5;
+    group.add(glow);
+    
+    return group;
+}
+
+// Arena monument (center)
+function createArenaMonument() {
+    const group = new THREE.Group();
+    
+    // Base platform
+    const baseGeo = new THREE.CylinderGeometry(5, 6, 2, 8);
+    const stoneMat = new THREE.MeshStandardMaterial({ color: 0x555555, flatShading: true });
+    const base = new THREE.Mesh(baseGeo, stoneMat);
+    base.position.y = 1;
+    group.add(base);
+    
+    // Statue pedestal
+    const pedGeo = new THREE.BoxGeometry(3, 4, 3);
+    const ped = new THREE.Mesh(pedGeo, stoneMat);
+    ped.position.y = 4;
+    group.add(ped);
+    
+    // Statue figure (simplified)
+    const figGeo = new THREE.ConeGeometry(2, 8, 4);
+    const figMat = new THREE.MeshStandardMaterial({ color: 0x888888, flatShading: true });
+    const figure = new THREE.Mesh(figGeo, figMat);
+    figure.position.y = 10;
+    group.add(figure);
     
     return group;
 }
